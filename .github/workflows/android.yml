@@ -1,0 +1,49 @@
+name: Android APK
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm ci
+      - run: npm test
+      - run: npx expo prebuild --platform android --no-install
+      - name: Build standalone APK
+        working-directory: android
+        run: ./gradlew :app:assembleRelease --no-daemon
+      - name: Prepare download
+        run: cp android/app/build/outputs/apk/release/app-release.apk vuon-tu-vung.apk
+      - name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" vuon-tu-vung.apk --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" vuon-tu-vung.apk --verify-tag --title "Vườn Từ Vựng $GITHUB_REF_NAME" --notes "Bản APK Android để cài trực tiếp."
+          fi
+      - uses: actions/upload-artifact@v6
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          name: vuon-tu-vung-android
+          path: vuon-tu-vung.apk
+          if-no-files-found: error

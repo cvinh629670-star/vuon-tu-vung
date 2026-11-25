@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Vườn Từ Vựng",
+    "slug": "vuon-tu-vung",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.vuontuvung.app"
+    },
+    "ios": {
+      "bundleIdentifier": "com.vuontuvung.app"
+    },
+    "plugins": [
+      "expo-status-bar",
+      "expo-font"
+    ]
+  }
+}
